@@ -4,7 +4,7 @@
 #include "periph/gpio.h"
 
 // Макрос для интервала времени, в течение которого трэд будет спать
-#define INTERVAL 1000000
+#define INTERVAL 50000
 
 int main(void)
 {
@@ -12,12 +12,16 @@ int main(void)
   xtimer_ticks32_t last_wakeup = xtimer_now();
   // Инициализация пина PC8 на выход
   gpio_init(GPIO_PIN(PORT_C, 8), GPIO_OUT);
+  gpio_init(GPIO_PIN(PORT_C, 9), GPIO_OUT);
 
+  //Make the second LED blink first so that they blink alternatively
+  gpio_toggle(GPIO_PIN(PORT_C, 9));
     while(1) {
       // Задача засыпает на период времени, равный значению макроса INTERVAL
       xtimer_periodic_wakeup(&last_wakeup, INTERVAL);
       // Пин PC8 переключает свое состояние на противоположное
       gpio_toggle(GPIO_PIN(PORT_C, 8));
+      gpio_toggle(GPIO_PIN(PORT_C, 9));
     }
 
     return 0;
