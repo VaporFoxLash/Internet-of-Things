@@ -8,7 +8,8 @@ void btn_handler(void *arg)
 {
   // Прием аргументов, передаваемых из главного потока.
   (void)arg;
-  // Переключение состояния пина PC8
+  // Переклю чение состояния пина PC8
+  xtimer_usleep(100000);
   gpio_toggle(GPIO_PIN(PORT_C, 8));
 }
 
@@ -19,11 +20,19 @@ int main(void)
   // GPIO_RISING - прерывание срабатывает по фронту
   // btn_handler - имя функции обработчика прерывания
   // NULL - ничего не передаем в аргументах
-  gpio_init_int(GPIO_PIN(PORT_A, 0), GPIO_IN, GPIO_RISING, btn_handler, NULL);
+  gpio_init_int(GPIO_PIN(PORT_A, 0), GPIO_IN, GPIO_BOTH, btn_handler, NULL);
   // Инициализация пина PC8 на выход
 	gpio_init(GPIO_PIN(PORT_C, 8), GPIO_OUT);
+    gpio_read(GPIO_PIN(PORT_C, 8));
+    btn_handler (NULL);
+    if (gpio_read(GPIO_PIN(PORT_C, 8)) == GPIO_RISING || gpio_read(GPIO_PIN(PORT_C, 8)) == GPIO_FALLING)
+    {
+        gpio_init_int(GPIO_PIN(PORT_A, 0), GPIO_IN, GPIO_BOTH,                  btn_handler, NULL);
+    }
 
-  while(1){}
+    while(1)
+    {
+    }
   return 0;
 }
 
