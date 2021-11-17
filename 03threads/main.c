@@ -7,6 +7,7 @@
 // Выделение памяти под стек первого треда
 // Размер выделяемого стека задан макросом THREAD_STACKSIZE_DEFAULT
 char stack_one[THREAD_STACKSIZE_DEFAULT];
+char stack_two[THREAD_STACKSIZE_DEFAULT];
 
 // Это первый поток
 void *thread_one(void *arg)
@@ -24,11 +25,27 @@ void *thread_one(void *arg)
     return NULL;
 }
 
+// Это 2nd поток
+void *thread_two(void *arg)
+{
+    // Прием аргументов из главного потока
+    (void) arg;
+    // ВременнАя метка для отсчета времени сна
+    xtimer_ticks32_t last_wakeup_one = xtimer_now();
+    while(1){
+        // Переключение состояния пина PC8
+        gpio_toggle(GPIO_PIN(PORT_C,9));
+        // Поток засыпает на 100000 микросекунд
+        xtimer_periodic_wakeup(&last_wakeup_one, 100000);
+    }
+    return NULL;
+}
 
 int main(void)
 {
     // Инициализация пина PC8 на выход
 	gpio_init(GPIO_PIN(PORT_C,8), GPIO_OUT);
+    gpio_init(GPIO_PIN(PORT_C,8), GPIO_OUT);
 
     // Создание потока
     // stack_one - выделенная под стек память
@@ -43,6 +60,12 @@ int main(void)
                     THREAD_CREATE_STACKTEST,
                     thread_one,
                     NULL, "thread_one");
+
+    thread_create(stack_two, sizeof(stack_two),
+                    THREAD_PRIORITY_MAIN-2,
+                    THREAD_CREATE_STACKTEST,
+                    thread_two,
+                    NULL, "thread_two");
 
     return 0;
 }

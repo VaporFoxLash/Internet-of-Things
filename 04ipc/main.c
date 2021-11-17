@@ -7,10 +7,16 @@
 // Выделение памяти под стеки двух тредов
 char thread_one_stack[THREAD_STACKSIZE_DEFAULT];
 char thread_two_stack[THREAD_STACKSIZE_DEFAULT];
+static msg_t rcv_queue[8];
 
 // Глобально объявляется структура, которая будет хранить PID (идентификатор треда)
 // Нам нужно знать этот идентификатор, чтобы посылать сообщения в тред
 static kernel_pid_t thread_one_pid;
+static kernel_pid_t thread_two_pid;
+
+static xtimer_ticks32_t last_toggle;
+static unit32_t toggle_count;
+static unit32_t toggle_interval;
 
 // Обработчик прерывания с кнопки
 void btn_handler(void *arg)
@@ -18,14 +24,26 @@ void btn_handler(void *arg)
   // Прием аргументов из главного потока
   (void)arg;
   // Создание объекта для хранения сообщения
-  msg_t msg;
+  msg_t msg_one;
+  msg_one.content.value = toggle_count;
+  msg_two.content.value = toggle_interval;
+  xtimer_ticks32_t curr = xtimer_now();
   // Поскольку прерывание вызывается и на фронте, и на спаде, нам нужно выяснить, что именно вызвало обработчик
   // для этого читаем значение пина с кнопкой. Если прочитали высокое состояние - то это был фронт.  
   if (gpio_read(GPIO_PIN(PORT_A,0)) > 0){
     // Отправка сообщения в тред по его PID
     // Сообщение остается пустым, поскольку нам сейчас важен только сам факт его наличия, и данные мы не передаем
-    msg_send(&msg, thread_one_pid);    
+    msg_send(&msg_one, thread_one_pid);
+    if (toggle_count < 5) toggle_count++;
+    else
+      toggle_count = 1;    
+  }else{
+    msg_send(&msg_two, thread_two_pid);
+    if (toggle_interval > 10000)toggle_interval -= 100000;
+    else
+      toggle_interval = 1;
   }
+  last_toggle= xtimer_now();
 
 }
 
