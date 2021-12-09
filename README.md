@@ -1,4 +1,4 @@
-# riot-examples
+# riot-examples(Case1)
 Примеры проектов RIOT для студентов IoT академии Samsung
 
 Проекты уже настроены для сборки под плату stm32f051discovery.
